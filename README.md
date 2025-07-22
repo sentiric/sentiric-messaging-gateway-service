@@ -12,6 +12,7 @@
 *   Node.js (or Go)
 *   Express/Fiber (for webhooks from messaging platforms)
 *   External messaging platform SDKs/APIs (e.g., WhatsApp Business API, Telegram Bot API).
+* we can use WhatsApp: whatsapp-web.js, Telegram: gramjs	Webhook yerine long-polling
 
 **API Interactions (As an API Provider & Client):**
 *   **As a Provider:** Exposes webhooks/APIs for external messaging platforms.
