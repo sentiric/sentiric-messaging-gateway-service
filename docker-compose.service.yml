@@ -1,20 +1,24 @@
-
-services:
-  messaging-gateway:
-    image: ${DOCKER_REGISTRY:-ghcr.io/sentiric}/sentiric-messaging-gateway-service:${TAG:-latest}
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: sentiric_messaging_gateway
-    env_file:
-      - ./.env
-    ports:
-      - "3003:3003" # Webhook'lar için
-    networks:
-      - sentiric-net
-    restart: unless-stopped
-
 networks:
   sentiric-net:
     name: ${NETWORK_NAME:-sentiric-net}
     driver: bridge
+
+services:
+    
+  messaging-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE_NAME: sentiric-messaging-gateway-service
+    env_file:
+      - ./.env
+    volumes:
+      - ../sentiric-infrastructure/tls/certs:/etc/sentiric/tls:ro
+    ports:
+      - "${MESSAGING_GATEWAY_SERVICE_PORT}:${MESSAGING_GATEWAY_SERVICE_PORT}"
+    networks:
+      - sentiric-net
+    profiles:
+      - default
+    restart: always
