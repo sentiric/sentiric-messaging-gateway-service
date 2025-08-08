@@ -15,9 +15,9 @@ services:
       - ./.env.docker
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq/
-    # ports:
+    ports:
     #   - "${RABBITMQ_PORT}:${RABBITMQ_PORT}"
-    #   - "15672:15672"      
+      - "15672:15672"      
     networks:
       - sentiric-net
     profiles:

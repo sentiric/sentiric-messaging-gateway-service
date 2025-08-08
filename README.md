@@ -1,38 +1,64 @@
-# Sentiric Messaging Gateway Service
+# 💬 Sentiric Messaging Gateway Service
 
-**Description:** Integrates the Sentiric platform with various external messaging channels (e.g., WhatsApp, Telegram, SMS), normalizing message formats for internal processing.
+[![Status](https://img.shields.io/badge/status-active-success.svg)]()
+[![Node.js Version](https://img.shields.io/badge/node-20.x-green.svg)](https://nodejs.org/)
+[![Framework](https://img.shields.io/badge/framework-Node.js-blueviolet.svg)]()
+[![License](https://img.shields.io/badge/license-UNLICENSED-lightgrey.svg)]()
 
-**Core Responsibilities:**
-*   Receiving incoming messages from external messaging platforms.
-*   Normalizing received messages into Sentiric's internal format and forwarding them to `sentiric-agent-service`.
-*   Converting responses from `sentiric-agent-service` into the appropriate format for external platforms.
-*   Managing platform-specific API authentication and message formats.
+**Sentiric Messaging Gateway Service**, Sentiric platformunu "ses"in ötesine taşıyarak **Omnichannel (Çoklu Kanal)** yetenekleri kazandıran kritik bir giriş kapısıdır. Temel görevi, WhatsApp ve Telegram gibi harici metin tabanlı mesajlaşma platformları ile Sentiric'in merkezi beyni (`agent-service`) arasında bir köprü kurmaktır.
 
-**Technologies:**
-*   Node.js (or Go)
-*   Express/Fiber (for webhooks from messaging platforms)
-*   External messaging platform SDKs/APIs (e.g., WhatsApp Business API, Telegram Bot API).
-* we can use WhatsApp: whatsapp-web.js, Telegram: gramjs	Webhook yerine long-polling
+Bu servis, farklı kanallardan gelen mesajları standart bir formata dönüştürür ve platformun merkezi olay akışına (`RabbitMQ`) dahil eder.
 
-**API Interactions (As an API Provider & Client):**
-*   **As a Provider:** Exposes webhooks/APIs for external messaging platforms.
-*   **As a Client:** Calls APIs of `sentiric-agent-service`.
+## ✨ Temel Özellikler ve Mimari
 
-**Local Development:**
-1.  Clone this repository: `git clone https://github.com/sentiric/sentiric-messaging-gateway-service.git`
-2.  Navigate into the directory: `cd sentiric-messaging-gateway-service`
-3.  Install dependencies: `npm install` (Node.js) or `go mod tidy` (Go).
-4.  Create a `.env` file from `.env.example` to configure external messaging platform credentials and webhook URLs.
-5.  Start the service: `npm start` (Node.js) or `go run main.go` (Go).
+*   **Çoklu Kanal Desteği:** `whatsapp-web.js` kullanarak WhatsApp entegrasyonu için sağlam bir temel sunar. Mimarisi, gelecekte Telegram (`telegraf`), SMS ve diğer platformların "Kanal Adaptörleri" olarak kolayca eklenmesine olanak tanır.
+*   **Dayanıklı ve Olay Tabanlı (Event-Driven):** Gelen her mesaj, anında işlenip standart bir formatta `RabbitMQ`'ya yayınlanır. Bu, servisler arasında tam bir bağımsızlık (decoupling) sağlar ve sistemin genel dayanıklılığını artırır.
+*   **Kalıcı Oturum Yönetimi:** WhatsApp bağlantısı için oluşturulan oturum bilgileri, bir Docker `volume`'ü sayesinde kalıcı olarak saklanır. Bu, servisin yeniden başlatılması durumunda her seferinde QR kodunu yeniden taratma ihtiyacını ortadan kaldırır.
+*   **Optimize Edilmiş Dağıtım:** Multi-stage `Dockerfile`, `whatsapp-web.js`'in gerektirdiği `chromium` gibi ağır sistem bağımlılıklarını kurarken, son üretim imajını mümkün olduğunca hafif tutacak şekilde tasarlanmıştır.
 
-**Configuration:**
-Refer to `config/` directory and `.env.example` for service-specific configurations, including API keys and webhook settings for each messaging platform.
+## 🚀 Hızlı Başlangıç (Docker ile)
 
-**Deployment:**
-Designed for containerized deployment (e.g., Docker, Kubernetes). Refer to `sentiric-infrastructure`.
+Bu servis, `sentiric-infrastructure` reposundaki merkezi `docker-compose` ile platformun bir parçası olarak çalışmak üzere tasarlanmıştır. Tek başına çalıştırmak ve test etmek için:
 
-**Contributing:**
-We welcome contributions! Please refer to the [Sentiric Governance](https://github.com/sentiric/sentiric-governance) repository for coding standards and contribution guidelines.
+1.  **Altyapıyı Başlatın:** `messaging-gateway`, `rabbitmq` servisine bağımlıdır. `sentiric-infrastructure` reposundan bu servisi başlatın.
+    ```bash
+    docker compose up -d rabbitmq
+    ```
 
-**License:**
-This project is licensed under the [License](LICENSE).
+2.  **`.env.docker` Dosyası Oluşturun:**
+    Proje için gerekli `RABBITMQ_URL` gibi ortam değişkenlerini içeren bir `.env.docker` dosyası oluşturun.
+
+3.  **Servisi Başlatın:**
+    ```bash
+    docker compose -f docker-compose.service.yml up --build -d
+    ```
+
+4.  **Logları İzleyin ve QR Kodunu Taratın:**
+    ```bash
+    docker logs -f messaging-gateway
+    ```
+    Terminalde bir QR kodu belirecektir. Bu kodu telefonunuzdaki WhatsApp uygulamasından (Ayarlar > Bağlı Cihazlar > Cihaz Bağla) taratın. Başarıyla bağlandığınızda, loglarda `WhatsApp istemcisi hazır!` mesajını göreceksiniz.
+
+## 🤖 Kullanım ve Uçtan Uca Test
+
+Servisin çalıştığını ve mesajları RabbitMQ'ya doğru bir şekilde ilettiğini doğrulamak için lütfen aşağıdaki demo rehberini inceleyin:
+
+➡️ **[Kullanım ve Demo Rehberi (DEMO.md)](DEMO.md)**
+
+## 💻 Yerel Geliştirme ve Test
+
+1.  Node.js v20+ ve `npm` kurulu olduğundan emin olun.
+2.  Bağımlılıkları kurun:
+    ```bash
+    npm install
+    ```
+3.  Servisi geliştirme modunda (hot-reload ile) başlatın:
+    ```bash
+    npm run dev
+    ```
+4.  Testleri çalıştırın:
+    ```bash
+    npm test
+    ```
+---
+Bu servis, `sentiric-governance`'da belirtilen tüm modernizasyon, standardizasyon ve gözlemlenebilirlik ilkelerine uygun olarak geliştirilmiştir.
