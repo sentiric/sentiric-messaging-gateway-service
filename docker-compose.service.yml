@@ -1,24 +1,53 @@
 networks:
   sentiric-net:
+    # external: true
     name: ${NETWORK_NAME:-sentiric-net}
-    driver: bridge
+
+volumes:
+  rabbitmq_data:
+  whatsapp_session:
 
 services:
-    
-  messaging-gateway:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        SERVICE_NAME: sentiric-messaging-gateway-service
+
+  rabbitmq:
+    image: rabbitmq:4.1.0-management-alpine
     env_file:
-      - ./.env
+      - ./.env.docker
     volumes:
-      - ../sentiric-infrastructure/tls/certs:/etc/sentiric/tls:ro
-    ports:
-      - "${MESSAGING_GATEWAY_SERVICE_PORT}:${MESSAGING_GATEWAY_SERVICE_PORT}"
+      - rabbitmq_data:/var/lib/rabbitmq/
+    # ports:
+    #   - "${RABBITMQ_PORT}:${RABBITMQ_PORT}"
+    #   - "15672:15672"      
     networks:
       - sentiric-net
     profiles:
       - default
+      - data
     restart: always
+    # YENİ EKLENEN KISIM
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      
+  messaging-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: messaging-gateway
+    hostname: messaging-gateway
+    env_file:
+      - ./.env.docker
+    # WhatsApp oturumunu kalıcı hale getirmek için volume ekliyoruz
+    volumes:
+      - whatsapp_session:/app/wweb_auth
+    networks:
+      - sentiric-net
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+    profiles:
+      - default      
