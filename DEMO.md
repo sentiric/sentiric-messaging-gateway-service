@@ -17,7 +17,7 @@ Bu senaryoda, bir WhatsApp mesajı göndereceğiz ve bu mesajın servis tarafın
 
 1.  Aşağıdaki komutla servisin loglarını izlemeye başlayın:
     ```bash
-    docker logs -f messaging-gateway
+    make logs SERVICES="messaging-gateway"
     ```
 
 2.  Terminalde büyük bir **QR kodu** göreceksiniz.
@@ -28,41 +28,24 @@ Bu senaryoda, bir WhatsApp mesajı göndereceğiz ve bu mesajın servis tarafın
 
 4.  Bağlantı başarılı olduğunda, loglarda aşağıdaki gibi bir mesaj görmelisiniz:
     ```
-    [INFO]: WhatsApp istemcisi hazır!
+    {"level":30,"time":...,"service":"connectors-service","msg":"WhatsApp istemcisi hazır!"}
     ```
-    Artık servis, bu WhatsApp hesabından gelen ve bu hesaba gönderilen mesajları yönetmeye hazırdır.
 
 ### Adım 2: Test Mesajı Gönderme
 
-1.  **Farklı bir telefondan**, az önce bağladığınız WhatsApp numarasına basit bir mesaj gönderin.
-    *   **Örnek Mesaj:** "Merhaba, bu bir test."
+1.  **Farklı bir telefondan**, az önce bağladığınız WhatsApp numarasına basit bir mesaj gönderin. Örnek: "Merhaba, bu bir test."
 
-2.  `messaging-gateway`'in loglarını izlediğiniz terminalde, anında yeni logların belirdiğini göreceksiniz:
+2.  `messaging-gateway`'in loglarında, mesajın alındığını ve yayınlandığını göreceksiniz:
     ```
-    [INFO]: {"from":"90555...","body":"Merhaba, bu bir test."} Yeni WhatsApp mesajı alındı
-    [INFO]: {"payload":{...}, "routingKey":"incoming.whatsapp"} Mesaj RabbitMQ'ya yayınlandı.
+    {"level":30,"time":...,"service":"connectors-service","from":"905...","body":"Merhaba, bu bir test.","msg":"Yeni WhatsApp mesajı alındı"}
+    {"level":30,"time":...,"service":"connectors-service","payload":{...},"routingKey":"incoming.whatsapp","msg":"Mesaj RabbitMQ'ya yayınlandı."}
     ```
-    Bu, mesajın başarıyla alındığını ve RabbitMQ'ya gönderildiğini kanıtlar.
 
-### Adım 3: Mesajı RabbitMQ Arayüzünde Doğrulama (En Önemli Adım)
-
-Bu adım, mesajın platformun geri kalanı (`agent-service` vb.) tarafından işlenmeye hazır olduğunu %100 doğrular.
+### Adım 3: Mesajı RabbitMQ Arayüzünde Doğrulama
 
 1.  Tarayıcınızı açın ve `http://localhost:15672` adresine gidin.
-2.  `sentiric` / `sentiric_pass` (veya `.env` dosyanızdaki kullanıcı/şifre) ile giriş yapın.
-3.  **"Exchanges"** sekmesine tıklayın.
-4.  Listeden **`sentiric_messaging`** adındaki exchange'i bulun ve üzerine tıklayın.
-5.  Aşağı kaydırarak **"Get messages"** paneline gelin.
-6.  **"Get Message(s)"** butonuna tıklayın.
+2.  `sentiric` / `sentiric_pass` ile giriş yapın.
+3.  **"Exchanges"** sekmesine tıklayın ve **`sentiric_messaging`** exchange'ini seçin.
+4.  **"Get messages"** panelinde **"Get Message(s)"** butonuna tıklayın.
 
-**Başarılı Sonuç:**
-Ekranda, gönderdiğiniz WhatsApp mesajının, servisimiz tarafından standart bir JSON formatına dönüştürülmüş halini göreceksiniz.
-
-**Örnek Payload:**
-```json
-{
-  "channel": "whatsapp",
-  "senderId": "905551234567@c.us",
-  "text": "Merhaba, bu bir test.",
-  "timestamp": "2025-08-08T13:30:00.123Z"
-}
+**Başarılı Sonuç:** Ekranda, gönderdiğiniz WhatsApp mesajının, servisimiz tarafından standart bir JSON formatına dönüştürülmüş halini göreceksiniz.
