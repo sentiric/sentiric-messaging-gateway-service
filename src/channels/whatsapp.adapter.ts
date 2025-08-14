@@ -32,7 +32,8 @@ export class WhatsAppAdapter implements IChannelAdapter {
 
     this.client.on('qr', (qr: string) => {
       logger.info('WhatsApp QR kodu, lütfen tarayın:');
-      qrcode.generate(qr, { small: true });
+      // loglarda gürültü yaratıyor şimdilik kaldırıldı 
+      // qrcode.generate(qr, { small: true });
     });
 
     this.client.on('ready', () => {
