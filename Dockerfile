@@ -2,8 +2,7 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Sistem bağımlılıklarını kur
-# whatsapp-web.js'in puppeteer'ı için chromium ve diğer kütüphaneler gereklidir.
+# Sistem bağımlılıkları
 RUN apk add --no-cache \
     chromium \
     nss \
@@ -13,11 +12,9 @@ RUN apk add --no-cache \
     ttf-freefont \
     git
 
-# Puppeteer'ın bu ENV değişkenine ihtiyacı var.
 ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium-browser"
 
 COPY package.json package-lock.json ./
-# Tüm bağımlılıkları kur
 RUN npm ci
 
 COPY . .
@@ -48,4 +45,6 @@ RUN npm ci --omit=dev
 RUN mkdir -p /app/wweb_auth && chown -R node /app
 USER node
 
-CMD ["node", "dist/index.js"]
+# DÜZELTME: Başlangıçta kilit dosyasını güvenilir bir şekilde sil.
+# Bu, hem 'dev' hem de 'core' profilinde tutarlı çalışır.
+CMD ["sh", "-c", "rm -f /app/wweb_auth/SingletonLock && node dist/index.js"]
