@@ -28,17 +28,17 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Çevresel değişken dosyaları (gizli tutmak gerekebilir)
+# Ortam dosyaları
 .env
-.env.*   # Örneğin .env.development, .env.production
+.env.*
+
+# Docker compose 
+docker-compose.yml
+docker-compose.*.yml
 
 # Test çıktıları ve coverage
 coverage
 *.lcov
-
-# Docker-compose ve diğer docker yapılandırma dosyaları
-docker-compose.yml
-docker-compose.override.yml
 
 # tsconfig, package-lock vs. genellikle dahil edilir ama istenirse hariç tutulabilir
 # tsconfig.json

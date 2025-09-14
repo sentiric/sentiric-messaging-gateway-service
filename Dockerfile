@@ -1,5 +1,11 @@
 # --- STAGE 1: Build ---
 FROM node:20-alpine AS builder
+
+# Build argümanlarını build aşamasında kullanılabilir yap
+ARG GIT_COMMIT="unknown"
+ARG BUILD_DATE="unknown"
+ARG SERVICE_VERSION="0.0.0"
+
 WORKDIR /app
 
 # Sistem bağımlılıkları
