@@ -67,7 +67,6 @@ web_modules/
 
  Ortam dosyaları
 .env
-.env.*
 !.env.example          # örnek config dosyasını tut
 
 # Çalışma zamanı veya geçici dosyalar
